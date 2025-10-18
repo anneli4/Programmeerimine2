@@ -7,7 +7,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
+
 namespace KooliProjekt.WebAPI
+
 {
     public class Program
     {
@@ -15,20 +17,21 @@ namespace KooliProjekt.WebAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Loeme connection stringi appsettings.json failist
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-            // Add services to the container.
+            // Registreerime DbContexti koos ühendusstringiga
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                options.UseSqlServer(connectionString);
-            });
+    options.UseSqlServer(connectionString));
 
+            // Lisa kontrollerid
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+            // Swagger konfigureerimine (API dokumentatsioon)
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // FluentValidation ja MediatR konfiguratsioon
             var applicationAssembly = typeof(ErrorHandlingBehavior<,>).Assembly;
             builder.Services.AddValidatorsFromAssembly(applicationAssembly);
             builder.Services.AddMediatR(config =>
@@ -41,7 +44,7 @@ namespace KooliProjekt.WebAPI
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            // HTTP request pipeline seadistus
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -50,10 +53,10 @@ namespace KooliProjekt.WebAPI
 
             app.UseAuthorization();
 
-
             app.MapControllers();
 
             app.Run();
         }
     }
 }
+
