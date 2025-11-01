@@ -12,6 +12,10 @@ namespace KooliProjekt.Application.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<Order_Item> Order_items { get; set; }
 
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        {
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
