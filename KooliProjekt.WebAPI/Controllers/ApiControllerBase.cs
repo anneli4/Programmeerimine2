@@ -1,21 +1,28 @@
 ﻿using KooliProjekt.Application.Infrastructure.Results;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace KooliProjekt.WebAPI.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]    
+    [Route("api/[controller]")]
     public abstract class ApiControllerBase : Controller
     {
         private static JsonSerializerSettings _serializerSettings =
             new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                NullValueHandling = NullValueHandling.Ignore                
+                NullValueHandling = NullValueHandling.Ignore
             };
 
+        // ---------------- Mediator ----------------
+        private IMediator _mediator;
+        protected IMediator Mediator => _mediator ??= HttpContext.RequestServices.GetRequiredService<IMediator>();
+
+        // ---------------- Result helper ----------------
         protected IActionResult Result(OperationResult result)
         {
             var serialized = JsonConvert.SerializeObject(result, _serializerSettings);
