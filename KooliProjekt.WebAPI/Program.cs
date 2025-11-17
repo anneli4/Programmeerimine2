@@ -1,3 +1,4 @@
+using System;
 using FluentValidation;
 using KooliProjekt.Application.Behaviors;
 using KooliProjekt.Application.Data;
@@ -56,6 +57,7 @@ namespace KooliProjekt.WebAPI
             app.MapControllers();
 
             app.Run();
+            
         }
     }
 }

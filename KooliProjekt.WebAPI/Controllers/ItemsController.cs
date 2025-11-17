@@ -1,9 +1,9 @@
-﻿using KooliProjekt.Application.Data;
+﻿using System.Threading.Tasks;
+using KooliProjekt.Application.Data;
 using KooliProjekt.Application.Features.Items;
 using KooliProjekt.Application.Infrastructure.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace KooliProjekt.WebAPI.Controllers
 {
@@ -17,6 +17,16 @@ namespace KooliProjekt.WebAPI.Controllers
             var query = new GetItemsQuery { Page = page, PageSize = pageSize };
             var result = await Mediator.Send(query);
             return Ok(result);
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteItem(int id)
+        {
+            var command = new DeleteItemsCommand { Id = id };
+            var result = await Mediator.Send(command);
+
+            if (!result) return NotFound();
+            return NoContent();
         }
     }
 }

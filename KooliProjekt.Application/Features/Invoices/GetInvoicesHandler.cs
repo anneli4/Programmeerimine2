@@ -18,9 +18,13 @@ namespace KooliProjekt.Application.Features.Invoices
 
         public async Task<PagedResult<Invoice>> Handle(GetInvoicesQuery request, CancellationToken cancellationToken)
         {
-            var query = _context.Invoices.AsQueryable();
+            var query = _context.Invoices
+                                .Include(i => i.Order)
+                                .ThenInclude(o => o.Client)
+                                .Include(i => i.Invoice_lines)
+                                .AsNoTracking();
+
             return await query.GetPagedAsync(request.Page, request.PageSize);
         }
     }
 }
-

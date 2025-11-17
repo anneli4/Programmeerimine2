@@ -18,7 +18,10 @@ namespace KooliProjekt.Application.Features.Orders
 
         public async Task<PagedResult<Order>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
         {
-            var query = _context.Orders.AsQueryable();
+            var query = _context.Orders
+                        .Include(o => o.Client)
+                        .Include(o => o.Order_Items)
+                        .AsNoTracking();
             return await query.GetPagedAsync(request.Page, request.PageSize);
         }
     }

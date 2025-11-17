@@ -1,9 +1,9 @@
-﻿using KooliProjekt.Application.Data;
+﻿using System.Threading.Tasks;
+using KooliProjekt.Application.Data;
 using KooliProjekt.Application.Features.Clients;
 using KooliProjekt.Application.Infrastructure.Paging;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 namespace KooliProjekt.WebAPI.Controllers
 {
@@ -18,11 +18,15 @@ namespace KooliProjekt.WebAPI.Controllers
             var result = await Mediator.Send(query);
             return Ok(result);
         }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteClient(int id)
+        {
+            var command = new DeleteClientCommand { Id = id };
+            var result = await Mediator.Send(command);
+
+            if (!result) return NotFound();
+            return NoContent();
+        }
     }
 }
-
-
-
-
-
-
