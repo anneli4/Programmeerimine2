@@ -1,26 +1,35 @@
-﻿using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Infrastructure.Paging;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using KooliProjekt.Application.Data.Repositories;
+using KooliProjekt.Application.Features.Clients;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace KooliProjekt.Application.Features.Clients
 {
-    public class GetClientsHandler : IRequestHandler<GetClientsQuery, PagedResult<Client>>
+    public class GetClientsHandler : IRequestHandler<GetClientsQuery, List<ClientDto>>
     {
-        private readonly ApplicationDbContext _context;
+        private readonly ClientRepository _repository;
 
-        public GetClientsHandler(ApplicationDbContext context)
+        public GetClientsHandler(ClientRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
-        public async Task<PagedResult<Client>> Handle(GetClientsQuery request, CancellationToken cancellationToken)
+        public async Task<List<ClientDto>> Handle(GetClientsQuery request, CancellationToken cancellationToken)
         {
-            var query = _context.Clients.AsQueryable();
-            return await query.GetPagedAsync(request.Page, request.PageSize);
+            var clients = await _repository.GetAllAsync();
+
+            return clients.Select(c => new ClientDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Email = c.Email,
+                Address = c.Address,
+                Phone = c.Phone,
+                Discount = c.Discount
+            }).ToList();
         }
     }
 }
-

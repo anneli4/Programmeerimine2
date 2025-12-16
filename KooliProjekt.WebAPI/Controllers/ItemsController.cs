@@ -1,32 +1,38 @@
-﻿using System.Threading.Tasks;
-using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Features.Items;
-using KooliProjekt.Application.Infrastructure.Paging;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using KooliProjekt.Application.Features.Items;
+using KooliProjekt.Application.Dto;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class ItemsController : ApiControllerBase
+    [Route("api/[controller]")]
+    public class ItemsController : ControllerBase
     {
-        [HttpGet]
-        public async Task<ActionResult<PagedResult<Item>>> GetItems([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        private readonly IMediator _mediator;
+
+        public ItemsController(IMediator mediator)
         {
-            var query = new GetItemsQuery { Page = page, PageSize = pageSize };
-            var result = await Mediator.Send(query);
-            return Ok(result);
+            _mediator = mediator;
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteItem(int id)
+        // GET: api/Items
+        [HttpGet]
+        public async Task<ActionResult<List<ItemDto>>> Get()
         {
-            var command = new DeleteItemsCommand { Id = id };
-            var result = await Mediator.Send(command);
+            var query = new GetItemsQuery();
+            var items = await _mediator.Send(query);
+            return Ok(items);
+        }
 
-            if (!result) return NotFound();
-            return NoContent();
+        // POST: api/Items
+        [HttpPost]
+        public async Task<ActionResult<int>> Create([FromBody] CreateItemCommand command)
+        {
+            var itemId = await _mediator.Send(command);
+            return Ok(itemId);
         }
     }
 }

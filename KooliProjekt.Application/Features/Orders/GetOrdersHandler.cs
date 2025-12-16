@@ -1,28 +1,33 @@
-﻿using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Infrastructure.Paging;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using KooliProjekt.Application.Data.Repositories;
+using KooliProjekt.Application.Dto;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace KooliProjekt.Application.Features.Orders
 {
-    public class GetOrdersHandler : IRequestHandler<GetOrdersQuery, PagedResult<Order>>
+    public class GetOrdersHandler : IRequestHandler<GetOrdersQuery, List<OrderDto>>
     {
-        private readonly ApplicationDbContext _context;
+        private readonly OrderRepository _repository;
 
-        public GetOrdersHandler(ApplicationDbContext context)
+        public GetOrdersHandler(OrderRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
-        public async Task<PagedResult<Order>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
+        public async Task<List<OrderDto>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
         {
-            var query = _context.Orders
-                        .Include(o => o.Client)
-                        .Include(o => o.Order_Items)
-                        .AsNoTracking();
-            return await query.GetPagedAsync(request.Page, request.PageSize);
+            var orders = await _repository.GetAllAsync();
+
+            return orders.Select(o => new OrderDto
+            {
+                Id = o.Id,
+                Date = o.Date,
+                ClientId = o.ClientId,
+                Discount = o.Discount
+            }).ToList();
         }
     }
 }

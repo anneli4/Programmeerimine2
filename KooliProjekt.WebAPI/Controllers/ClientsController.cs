@@ -1,32 +1,39 @@
-﻿using System.Threading.Tasks;
-using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Features.Clients;
-using KooliProjekt.Application.Infrastructure.Paging;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using KooliProjekt.Application.Features.Clients;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class ClientsController : ApiControllerBase
+    [Route("api/[controller]")]
+    public class ClientsController : ControllerBase
     {
+        private readonly IMediator _mediator;
+
+        public ClientsController(IMediator mediator)
+        {
+            _mediator = mediator;
+        }
+
+        // GET: api/Clients
         [HttpGet]
-        public async Task<ActionResult<PagedResult<Client>>> GetClients([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<List<ClientDto>>> Get()
         {
-            var query = new GetClientsQuery { Page = page, PageSize = pageSize };
-            var result = await Mediator.Send(query);
-            return Ok(result);
+            var query = new GetClientsQuery();
+            var clients = await _mediator.Send(query);
+            return Ok(clients);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteClient(int id)
+        // POST: api/Clients
+        [HttpPost]
+        public async Task<ActionResult<int>> Create([FromBody] CreateClientCommand command)
         {
-            var command = new DeleteClientCommand { Id = id };
-            var result = await Mediator.Send(command);
-
-            if (!result) return NotFound();
-            return NoContent();
+            var clientId = await _mediator.Send(command);
+            return Ok(clientId);
         }
+
+        // Hiljem saab lisada PUT ja DELETE otspunkte
     }
 }

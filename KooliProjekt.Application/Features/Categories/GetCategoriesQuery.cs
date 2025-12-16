@@ -1,12 +1,8 @@
-﻿using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Infrastructure.Paging;
-using MediatR;
+﻿using MediatR;
+using KooliProjekt.Application.Dto;
+using System.Collections.Generic;
 
 namespace KooliProjekt.Application.Features.Categories
 {
-    public class GetCategoriesQuery : IRequest<PagedResult<Category>>
-    {
-        public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 10;
-    }
+    public record GetCategoriesQuery() : IRequest<List<CategoryDto>>;
 }

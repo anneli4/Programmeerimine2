@@ -3,9 +3,9 @@ using System.Collections.Generic;
 
 namespace KooliProjekt.Application.Data
 {
-    public class Invoice
+    public class Invoice : Entity
     {
-        public int Id { get; set; }
+       
         public string InvoiceNumber { get; set; }
         public int OrderId { get; set; }
         public int ClientId { get; set; }      // foreign key

@@ -1,32 +1,38 @@
-﻿using System.Threading.Tasks;
-using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Features.Invoices;
-using KooliProjekt.Application.Infrastructure.Paging;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using KooliProjekt.Application.Features.InvoiceLines;
+using KooliProjekt.Application.Dto;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class InvoicesController : ApiControllerBase
+    [Route("api/[controller]")]
+    public class InvoiceLinesController : ControllerBase
     {
-        [HttpGet]
-        public async Task<ActionResult<PagedResult<Invoice>>> GetInvoices([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        private readonly IMediator _mediator;
+
+        public InvoiceLinesController(IMediator mediator)
         {
-            var query = new GetInvoicesQuery { Page = page, PageSize = pageSize };
-            var result = await Mediator.Send(query);
-            return Ok(result);
+            _mediator = mediator;
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteInvoice(int id)
+        // GET: api/InvoiceLines
+        [HttpGet]
+        public async Task<ActionResult<List<InvoiceLineDto>>> Get()
         {
-            var command = new DeleteInvoicesCommand { Id = id };
-            var result = await Mediator.Send(command);
+            var query = new GetInvoiceLinesQuery();
+            var lines = await _mediator.Send(query);
+            return Ok(lines);
+        }
 
-            if (!result) return NotFound();
-            return NoContent();
+        // POST: api/InvoiceLines
+        [HttpPost]
+        public async Task<ActionResult<int>> Create([FromBody] CreateInvoiceLineCommand command)
+        {
+            var lineId = await _mediator.Send(command);
+            return Ok(lineId);
         }
     }
 }

@@ -1,32 +1,38 @@
-﻿using System.Threading.Tasks;
-using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Features.Orders;
-using KooliProjekt.Application.Infrastructure.Paging;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using KooliProjekt.Application.Features.Orders;
+using KooliProjekt.Application.Dto;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class OrdersController : ApiControllerBase
+    [Route("api/[controller]")]
+    public class OrdersController : ControllerBase
     {
-        [HttpGet]
-        public async Task<ActionResult<PagedResult<Order>>> GetOrders([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        private readonly IMediator _mediator;
+
+        public OrdersController(IMediator mediator)
         {
-            var query = new GetOrdersQuery { Page = page, PageSize = pageSize };
-            var result = await Mediator.Send(query);
-            return Ok(result);
+            _mediator = mediator;
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteOrder(int id)
+        // GET: api/Orders
+        [HttpGet]
+        public async Task<ActionResult<List<OrderDto>>> Get()
         {
-            var command = new DeleteOrdersCommand { Id = id };
-            var result = await Mediator.Send(command);
+            var query = new GetOrdersQuery();
+            var orders = await _mediator.Send(query);
+            return Ok(orders);
+        }
 
-            if (!result) return NotFound();
-            return NoContent();
+        // POST: api/Orders
+        [HttpPost]
+        public async Task<ActionResult<int>> Create([FromBody] CreateOrderCommand command)
+        {
+            var orderId = await _mediator.Send(command);
+            return Ok(orderId);
         }
     }
 }

@@ -1,25 +1,37 @@
-﻿using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Infrastructure.Paging;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using KooliProjekt.Application.Data.Repositories;
+using KooliProjekt.Application.Dto;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace KooliProjekt.Application.Features.InvoiceLines
 {
-    public class GetInvoiceLinesHandler : IRequestHandler<GetInvoiceLinesQuery, PagedResult<Invoice_Line>>
+    public class GetInvoiceLinesHandler : IRequestHandler<GetInvoiceLinesQuery, List<InvoiceLineDto>>
     {
-        private readonly ApplicationDbContext _context;
+        private readonly InvoiceLineRepository _repository;
 
-        public GetInvoiceLinesHandler(ApplicationDbContext context)
+        public GetInvoiceLinesHandler(InvoiceLineRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
-        public async Task<PagedResult<Invoice_Line>> Handle(GetInvoiceLinesQuery request, CancellationToken cancellationToken)
+        public async Task<List<InvoiceLineDto>> Handle(GetInvoiceLinesQuery request, CancellationToken cancellationToken)
         {
-            var query = _context.Invoice_Lines.AsQueryable();
-            return await query.GetPagedAsync(request.Page, request.PageSize);
+            var lines = await _repository.GetAllAsync();
+
+            return lines.Select(l => new InvoiceLineDto
+            {
+                Id = l.Id,
+                InvoiceId = l.InvoiceId,
+                ItemId = l.ItemId,
+                Quantity = l.Quantity,
+                UnitPrice = l.UnitPrice,
+                Discount = l.Discount,
+                Total = l.Total
+            }).ToList();
         }
     }
 }
+

@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace KooliProjekt.Application.Data
 {
-    public class Invoice_Line
+    public class Invoice_Line :Entity
     {
-        public int Id { get; set; }
+        
         public int InvoiceId { get; set; }
         public int ItemId { get; set; }
         public int Quantity { get; set; }
