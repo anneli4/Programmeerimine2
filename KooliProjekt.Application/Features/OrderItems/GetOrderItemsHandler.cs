@@ -1,25 +1,37 @@
-﻿using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Infrastructure.Paging;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using KooliProjekt.Application.Data.Repositories;
+using KooliProjekt.Application.Dto;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace KooliProjekt.Application.Features.OrderItems
 {
-    public class GetOrderItemsHandler : IRequestHandler<GetOrderItemsQuery, PagedResult<Order_Item>>
+    public class GetOrderItemsHandler : IRequestHandler<GetOrderItemsQuery, List<OrderItemDto>>
     {
-        private readonly ApplicationDbContext _context;
+        private readonly OrderItemRepository _repository;
 
-        public GetOrderItemsHandler(ApplicationDbContext context)
+        public GetOrderItemsHandler(OrderItemRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
-        public async Task<PagedResult<Order_Item>> Handle(GetOrderItemsQuery request, CancellationToken cancellationToken)
+        public async Task<List<OrderItemDto>> Handle(GetOrderItemsQuery request, CancellationToken cancellationToken)
         {
-            var query = _context.Order_Items.AsQueryable();
-            return await query.GetPagedAsync(request.Page, request.PageSize);
+            var items = await _repository.GetAllAsync();
+
+            return items.Select(i => new OrderItemDto
+            {
+                Id = i.Id,
+                OrderId = i.OrderId,
+                ItemId = i.ItemId,
+                Quantity = i.Quantity,
+                UnitPrice = i.UnitPrice,
+                Discount = i.Discount,
+                Total = i.Total
+            }).ToList();
         }
     }
 }
+

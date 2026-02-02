@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace KooliProjekt.Application.Data
 {
-    public class Order_Item
+    public class Order_Item :Entity
     {
-        public int Id { get; set; }
+       
         public int OrderId { get; set; }
         public int ItemId { get; set; }
         public int Quantity { get; set; }

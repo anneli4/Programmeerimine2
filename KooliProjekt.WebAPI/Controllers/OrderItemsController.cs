@@ -1,24 +1,38 @@
-﻿using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Features.OrderItems;
-using KooliProjekt.Application.Infrastructure.Paging;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using KooliProjekt.Application.Features.OrderItems;
+using KooliProjekt.Application.Dto;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace KooliProjekt.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class OrderItemsController : ApiControllerBase
+    [Route("api/[controller]")]
+    public class OrderItemsController : ControllerBase
     {
-        [HttpGet]
-        public async Task<ActionResult<PagedResult<Order_Item>>> GetOrderItems([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        private readonly IMediator _mediator;
+
+        public OrderItemsController(IMediator mediator)
         {
-            var query = new GetOrderItemsQuery { Page = page, PageSize = pageSize };
-            var result = await Mediator.Send(query);
-            return Ok(result);
+            _mediator = mediator;
+        }
+
+        // GET: api/OrderItems
+        [HttpGet]
+        public async Task<ActionResult<List<OrderItemDto>>> Get()
+        {
+            var query = new GetOrderItemsQuery();
+            var items = await _mediator.Send(query);
+            return Ok(items);
+        }
+
+        // POST: api/OrderItems
+        [HttpPost]
+        public async Task<ActionResult<int>> Create([FromBody] CreateOrderItemCommand command)
+        {
+            var itemId = await _mediator.Send(command);
+            return Ok(itemId);
         }
     }
 }
-
-

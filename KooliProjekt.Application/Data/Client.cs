@@ -2,9 +2,9 @@
 
 namespace KooliProjekt.Application.Data
 {
-    public class Client
+    public class Client : Entity
     {
-        public int Id { get; set; }
+        
         public string Name { get; set; }
         public string Email { get; set; }
         public string Address { get; set; }
@@ -12,6 +12,6 @@ namespace KooliProjekt.Application.Data
         public decimal Discount { get; set; }
 
         public ICollection<Order> Orders { get; set; }
-        public ICollection<Invoice> Invoices { get; set; } // kui soovid Invoice seost
+        public ICollection<Invoice> Invoices { get; set; } 
     }
 }

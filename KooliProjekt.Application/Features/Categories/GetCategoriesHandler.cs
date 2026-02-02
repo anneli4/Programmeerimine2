@@ -1,25 +1,32 @@
-﻿using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Infrastructure.Paging;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using MediatR;
+using KooliProjekt.Application.Data.Repositories;
+using KooliProjekt.Application.Dto;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace KooliProjekt.Application.Features.Categories
 {
-    public class GetCategoriesHandler : IRequestHandler<GetCategoriesQuery, PagedResult<Category>>
+    public class GetCategoriesHandler : IRequestHandler<GetCategoriesQuery, List<CategoryDto>>
     {
-        private readonly ApplicationDbContext _context;
+        private readonly CategoryRepository _repository;
 
-        public GetCategoriesHandler(ApplicationDbContext context)
+        public GetCategoriesHandler(CategoryRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
-        public async Task<PagedResult<Category>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
+        public async Task<List<CategoryDto>> Handle(GetCategoriesQuery request, CancellationToken cancellationToken)
         {
-            var query = _context.Categories.AsQueryable();
-            return await query.GetPagedAsync(request.Page, request.PageSize);
+            var categories = await _repository.GetAllAsync();
+
+            return categories.Select(c => new CategoryDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                Description = c.Description
+            }).ToList();
         }
     }
 }

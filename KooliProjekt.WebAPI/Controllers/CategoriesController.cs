@@ -1,32 +1,38 @@
-﻿using System.Threading.Tasks;
-using KooliProjekt.Application.Data;
-using KooliProjekt.Application.Features.Categories;
-using KooliProjekt.Application.Infrastructure.Paging;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using KooliProjekt.Application.Features.Categories;
+using KooliProjekt.Application.Dto;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace KooliProjekt.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
-    public class CategoriesController : ApiControllerBase
+    [Route("api/[controller]")]
+    public class CategoriesController : ControllerBase
     {
-        [HttpGet]
-        public async Task<ActionResult<PagedResult<Category>>> GetCategories([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        private readonly IMediator _mediator;
+
+        public CategoriesController(IMediator mediator)
         {
-            var query = new GetCategoriesQuery { Page = page, PageSize = pageSize };
-            var result = await Mediator.Send(query);
-            return Ok(result);
+            _mediator = mediator;
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategory(int id)
+        // GET: api/Categories
+        [HttpGet]
+        public async Task<ActionResult<List<CategoryDto>>> Get()
         {
-            var command = new DeleteCategoriesCommand { Id = id };
-            var result = await Mediator.Send(command);
+            var query = new GetCategoriesQuery();
+            var categories = await _mediator.Send(query);
+            return Ok(categories);
+        }
 
-            if (!result) return NotFound();
-            return NoContent();
+        // POST: api/Categories
+        [HttpPost]
+        public async Task<ActionResult<int>> Create([FromBody] CreateCategoryCommand command)
+        {
+            var categoryId = await _mediator.Send(command);
+            return Ok(categoryId);
         }
     }
 }
