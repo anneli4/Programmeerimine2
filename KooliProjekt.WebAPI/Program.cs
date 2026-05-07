@@ -11,19 +11,26 @@ using System;
 
 namespace KooliProjekt.WebAPI;
 
-public class Program
+public partial class Program
 {
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Read connection string from appsettings.json
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        if (builder.Environment.IsEnvironment("Testing"))
+        {
+            var databaseName = builder.Configuration["InMemoryDatabaseName"] ?? "KooliProjektIntegrationTests";
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseInMemoryDatabase(databaseName));
+        }
+        else
+        {
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-        // Register DbContext with connection string
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(connectionString));
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(connectionString));
+        }
 
         // Add controllers
         builder.Services.AddControllers();
@@ -43,7 +50,15 @@ public class Program
             config.AddOpenBehavior(typeof(TransactionalBehavior<,>));
         });
 
-        // Register repositories by interface -> implementation (keep only these)
+        // Register repositories for both interface-based and concrete handler dependencies.
+        builder.Services.AddScoped<CategoryRepository>();
+        builder.Services.AddScoped<ClientRepository>();
+        builder.Services.AddScoped<ItemRepository>();
+        builder.Services.AddScoped<OrderRepository>();
+        builder.Services.AddScoped<OrderItemRepository>();
+        builder.Services.AddScoped<InvoiceRepository>();
+        builder.Services.AddScoped<InvoiceLineRepository>();
+
         builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
         builder.Services.AddScoped<IClientRepository, ClientRepository>();
         builder.Services.AddScoped<IItemRepository, ItemRepository>();

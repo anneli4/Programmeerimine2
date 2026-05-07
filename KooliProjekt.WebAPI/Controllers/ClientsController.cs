@@ -34,6 +34,16 @@ namespace KooliProjekt.WebAPI.Controllers
             return Ok(clientId);
         }
 
-        // Hiljem saab lisada PUT ja DELETE otspunkte
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult> Delete(int id)
+        {
+            var wasDeleted = await _mediator.Send(new DeleteClientCommand { Id = id });
+            if (!wasDeleted)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
     }
 }
