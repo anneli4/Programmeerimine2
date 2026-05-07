@@ -9,65 +9,67 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 
+namespace KooliProjekt.WebAPI;
 
-namespace KooliProjekt.WebAPI
-
+public class Program
 {
-    public class Program
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
+        var builder = WebApplication.CreateBuilder(args);
+
+        // Read connection string from appsettings.json
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+        // Register DbContext with connection string
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(connectionString));
+
+        // Add controllers
+        builder.Services.AddControllers();
+
+        // Swagger (API docs)
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
+
+        // FluentValidation and MediatR configuration
+        var applicationAssembly = typeof(ErrorHandlingBehavior<,>).Assembly;
+        builder.Services.AddValidatorsFromAssembly(applicationAssembly);
+        builder.Services.AddMediatR(config =>
         {
-            var builder = WebApplication.CreateBuilder(args);
+            config.RegisterServicesFromAssembly(applicationAssembly);
+            config.AddOpenBehavior(typeof(ErrorHandlingBehavior<,>));
+            config.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            config.AddOpenBehavior(typeof(TransactionalBehavior<,>));
+        });
 
-            // Loeme connection stringi appsettings.json failist
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        // Register repositories by interface -> implementation (keep only these)
+        builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+        builder.Services.AddScoped<IClientRepository, ClientRepository>();
+        builder.Services.AddScoped<IItemRepository, ItemRepository>();
+        builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+        builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+        builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
+        builder.Services.AddScoped<IInvoiceLineRepository, InvoiceLineRepository>();
 
-            // Registreerime DbContexti koos ühendusstringiga
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+        var app = builder.Build();
 
-            // Lisa kontrollerid
-            builder.Services.AddControllers();
+        // Optionally migrate/seed DB here. To use async seeding, change Main to:
+        // public static async Task Main(string[] args)
+        // and then run:
+        // using var scope = app.Services.CreateScope();
+        // var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        // await SeedData.GenerateAsync(db);
 
-            // Swagger konfigureerimine (API dokumentatsioon)
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
-
-            // FluentValidation ja MediatR konfiguratsioon
-            var applicationAssembly = typeof(ErrorHandlingBehavior<,>).Assembly;
-            builder.Services.AddValidatorsFromAssembly(applicationAssembly);
-            builder.Services.AddMediatR(config =>
-            {
-                config.RegisterServicesFromAssembly(applicationAssembly);
-                config.AddOpenBehavior(typeof(ErrorHandlingBehavior<,>));
-                config.AddOpenBehavior(typeof(ValidationBehavior<,>));
-                config.AddOpenBehavior(typeof(TransactionalBehavior<,>));
-            });
-
-            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-            builder.Services.AddScoped<IClientRepository, ClientRepository>();
-            builder.Services.AddScoped<IItemRepository, ItemRepository>();
-            builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-            builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
-            builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
-            builder.Services.AddScoped<IInvoiceLineRepository, InvoiceLineRepository>();
-
-            var app = builder.Build();
-
-            // HTTP request pipeline seadistus
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
-            app.UseAuthorization();
-
-            app.MapControllers();
-
-            app.Run();
-            
+        // HTTP pipeline
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI();
         }
+
+        app.UseAuthorization();
+        app.MapControllers();
+        app.Run();
     }
 }
-
